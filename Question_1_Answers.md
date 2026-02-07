@@ -1,153 +1,260 @@
+# Ezra Booking Flow - Test Cases
+
 ## Question 1
-### Part 1
-*The booking flow is integral to Ezra's business operation. Please go through the first
-three steps of the booking process including payment and devise 15 test cases
-throughout the entire process you think are the most important. When submitting the
-assignment, please return the test cases from the most important to the least important.*
 
-Test Cases
+### Part 1: Test Cases
 
-1. E2E happy path - verify a new user can successfully complete the entire booking flow from login -> scan selection -> location/time selection -> payment -> confirmation -> medical questionnaire
-    * login to member facing portal
-    * start booking flow from dashboard
-    * input valid birthdate and sex
-    * select a scan plan
-    * choose a location and select date/time
-    * enter payment info
-    * verifying confirmation page with appt details
-    * click "fill out medical questionnaire" CTA
-    * complete and submit questionnaire
-    * verify questionnaire submission confirmation
-    * verify appt appears in user dashboard
-    * verify confirmation email received
+---
 
-2. Payment process validation
-    * complete booking flow up to "Reserve Your Appointment" page
-    * test CC payment (valid stripe test data)
-        * appt created
-    * test failed CC (invalid test data)
-        * appt not created
-    * test other payment methods
-        * affirm
-        * bank
-        * google pay
-    * verify payment security
-        * card details not visible in URL or local storage
-        * verify secure HTTPS connection on page
-        * check sensitive data is not exposed in browser console
+#### 1. End-to-End Critical User Journey
+**Objective:** Verify a user can successfully complete the entire booking flow
 
-3. Verify enforcement of 5 day questionnaire deadline and cancels appointment if not completed
-    * create appointment for date X (7 days from today)
-    * login on day 2, verify questionnaire should be accessible
-    * verify questionnaire can be completed and submitted
-    * create second appointment for date Y (7 days from today)
-    * but do not complete questionnaire
-    * wait until day 3, verify deadline has passed
-    * check if appointment is cancelled
-    * check if user receives cancellation notice
-    * check questionnaire is no longer accessible or shows "deadline passed"
-    * verify boundary case, between 5 and 4 days
-    * verify questionnaire status after completion on dashboard
-        * pending (not completed but still outside of 5 days)
-        * completed (after completion)
-        * overdue (after deadline)
+**Test Steps:**
+- Login to member-facing portal
+- Start booking flow from dashboard
+- Input valid birthdate and sex
+- Select a scan plan
+- Choose a location and select date/time
+- Enter payment information
+- Verify confirmation page with appointment details
+- Click "Fill out medical questionnaire" CTA
+- Complete and submit questionnaire
+- Verify questionnaire submission confirmation
+- Verify appointment appears in user dashboard
+- Verify confirmation email received
 
-4. Verify time slots accurately reflect availability and prevent double booking
-    * select location and date
-    * select a time slot and complete booking
-    * using incognito on a seperate tab, login as different user
-    * navigate to the same location, date, slot
-    * make sure previously booked slot tis no longer available
-    * edge case, two users simultaneously select same time slot
-    * both attempt to book
-    * verify only one succeeds, the other should get "time slot no longer available" error
+---
 
-5. Verify correct scan plan appear based on user selection
-    * on "Review Your Plan" page, verify all scan types are displayed (MRI, CT, Heart, Lung, etc)
-    * verify plan pricing displays correctly
-    * verify plan description are accurate
+#### 2. Payment Process Validation
+**Objective:** Ensure payment processing works correctly across different methods
 
-6. Verify calendar only allows valid and allowed future dates
-    * navigate to "Schedule Your Scan" and select location
-    * verify calendar appears
-    * validate date restrictions:
-        * past dates are disabled and not selectable
-        * today's date and time handling (may be grayed out if too late in day)
-        * for new users, dates are at least 5 days in future (to accommodate questionnaire deadline)
-        * dates extend far enough into future (e.g. 90 days)
-        * depending on location, verify for weekend availability
-        * check for holidays
+**Test Scenarios:**
 
-7. Verify booking flow works across different browsers and devices
-    * browsers in latest versions (chrome, firefox, safari, edge)
-    * mobile devices (iOS safari, android chrome)
-    * verify all functionality
-    * verify responsive design
+**Valid Payment:**
+- Complete booking flow up to "Reserve Your Appointment" page
+- Test credit card payment with valid Stripe test data
+- Verify appointment is created
 
-8. Verify user must be logged in and session remains active throughout booking
-    * test unauthenticated access
-        * navigate directly to booking URL without login
-    * test session timeout
-        * login and start booking
-        * wait for session timeout
-        * verify redirect to login screen
+**Failed Payment:**
+- Use invalid credit card test data
+- Verify appointment is NOT created
 
-9. Verify State selection filters location correctly
-    * on "Schedule Your Scan" page, select State: California
-    * verify only California locations display
-    * change state to Florida
-    * verify locations update to only Florida centers
-    * verify "no centers available" message if state has no locations
-    * select location → verify calendar appears
+**Alternative Payment Methods:**
+- Test Affirm
+- Test bank transfer
+- Test Google Pay
 
-10. Verify birthdate and sex fields have proper validation
-    * on "Review Your Plan" page, test birthdate field:
-        * leave blank, Continue button should be grayed out
-        * enter invalid date and verify error
-        * enter future date and verify error
-        * enter date making user < 18yrs, verify age handling
-        * enter valid date and verify acceptance
+**Payment Security:**
+- Verify card details are not visible in URL or local storage
+- Verify secure HTTPS connection on payment page
+- Check sensitive data is not exposed in browser console
 
-11. Verify scan rejection works properly
-    * on "Review Your Plan" page, select Heart CT Scan and Continue
-        * select any ONE of the questions and answer "Yes"
-        * complete the rest of the questions
-    * verify "We're sorry, this product isn't right for you." dialog appears
-    * verify user is able to backtrack from the dialog and choose another scan
+---
 
-12. Verify "Find closest centers to me" feature works correctly with browser location permissions
-    * navigate to "Schedule Your Scan" page
-    * click "Find closest centers to me"
-    * test permission granted:
-        * allow location permission in browser/system
-        * verify centers are sorted by distance to user's location
-    * test permission denied:
-        * deny location persmission
-        * verify graceful error message if available
-        * verify user can still filter by selecting State manually
+#### 3. Questionnaire Deadline Enforcement
+**Objective:** Verify 5-day questionnaire deadline enforcement and automatic appointment cancellation
 
-13. Verify user can reschedule appointment
-    * create an appointment via booking flow
-    * verify appointment exists on dashboard
-    * click on "Reschedule"
-    * select a future date/time
-    * ensure modified scan is displayed correctly on dashboard
+**Test Scenario 1 - Completed on Time:**
+- Create appointment for date X (7 days from today)
+- Login on day 2, verify questionnaire is accessible
+- Complete and submit questionnaire
+- Verify questionnaire status shows as "Completed"
 
-14. Verify user can cancel appointment
-    * create an appointment via booking flow
-    * verify appointment exists on dashboard
-    * click on "Cancel"
-    * select a reason
-    * verify reason field is required
-    * verify cancellation confirmation display page
-    * verify appointment no longer shows on dashboard
+**Test Scenario 2 - Missed Deadline:**
+- Create second appointment for date Y (7 days from today)
+- Do NOT complete questionnaire
+- Wait until day 3 (after 5-day deadline)
+- Verify appointment is cancelled
+- Verify user receives cancellation notice
+- Verify questionnaire shows "Deadline passed" message
 
-15. Usability testing
-    * verify functionalities work for screen readers
-    * verify keyboard navigation is possible
+**Boundary Testing:**
+- Test edge case between 5 and 4 days remaining
 
+**Status Verification:**
+- Pending (not completed, outside 5-day window)
+- Completed (after submission)
+- Overdue (after deadline passes)
 
+---
 
-### Part 2
-For the top 3 test cases from part 1, please provide a description explaining why they
-are indicated as your most important.
+#### 4. Time Slot Availability & Double Booking Prevention
+**Objective:** Ensure time slots accurately reflect availability and prevent double bookings
+
+**Test Steps:**
+- Select location and date
+- Select a time slot and complete booking
+- In incognito/separate browser, login as different user
+- Navigate to same location, date, and time
+- Verify previously booked slot is no longer available
+
+**Concurrent Booking Test:**
+- Two users simultaneously select same time slot
+- Both attempt to book
+- Verify only one succeeds
+- Verify other user receives "Time slot no longer available" error
+
+---
+
+#### 5. Calendar Date Restrictions
+**Objective:** Verify calendar only allows valid and permitted future dates
+
+**Test Steps:**
+- Navigate to "Schedule Your Scan" and select location
+- Verify calendar appears
+
+**Validation Checks:**
+- Past dates are disabled and not selectable
+- Today's date handling (grayed out if too late in day)
+- For new users: dates are at least 5 days in future (questionnaire deadline accommodation)
+- Dates extend sufficiently into future (e.g., 90 days)
+- Location-specific weekend availability
+- Holiday restrictions
+
+---
+
+#### 6. Authentication & Session Management
+**Objective:** Verify user must be logged in and session remains active throughout booking
+
+**Unauthenticated Access Test:**
+- Navigate directly to booking URL without login
+- Verify redirect to login page
+
+**Session Timeout Test:**
+- Login and start booking flow
+- Wait for session timeout period
+- Verify redirect to login screen
+- Verify user can resume after re-authenticating
+
+---
+
+#### 7. Heart CT Scan Rejection Flow
+**Objective:** Verify scan rejection works properly based on questionnaire responses
+
+**Test Steps:**
+- Navigate to "Review Your Plan" page
+- Select Heart CT Scan and click Continue
+- Answer "Yes" to ANY ONE of the disqualifying questions
+- Complete remaining questions
+- Verify "We're sorry, this product isn't right for you" dialog appears
+- Verify user can navigate back from dialog
+- Verify user can choose another scan type
+
+---
+
+#### 8. State-Based Location Filtering
+**Objective:** Verify state selection correctly filters available locations
+
+**Test Steps:**
+- Navigate to "Schedule Your Scan" page
+- Select State: California
+- Verify only California locations display
+- Change state to Florida
+- Verify locations update to show only Florida centers
+- Test state with no locations available
+- Verify "No centers available" message displays
+- Select location and verify calendar appears
+
+---
+
+#### 9. Birthdate & Sex Field Validation
+**Objective:** Verify proper validation for birthdate and sex fields
+
+**Test Cases:**
+- **Blank field:** Continue button should be grayed out
+- **Invalid date format:** Verify error message
+- **Future date:** Verify error message
+- **Age < 18 years:** Verify age handling policy
+- **Valid date:** Verify acceptance and continuation
+
+---
+
+#### 10. Scan Plan Display Validation
+**Objective:** Verify correct scan plans appear based on user selection
+
+**Test Steps:**
+- Navigate to "Review Your Plan" page
+- Verify all scan types are displayed (MRI, CT, Heart, Lung, etc.)
+- Verify plan pricing displays correctly
+- Verify plan descriptions are accurate
+
+---
+
+#### 11. Location Detection Feature
+**Objective:** Verify "Find closest centers to me" feature works correctly
+
+**Permission Granted:**
+- Navigate to "Schedule Your Scan" page
+- Click "Find closest centers to me"
+- Allow location permission in browser/system
+- Verify centers are sorted by distance from user's location
+
+**Permission Denied:**
+- Deny location permission
+- Verify graceful error message displays
+- Verify user can still filter by selecting State manually
+
+---
+
+#### 12. Appointment Rescheduling
+**Objective:** Verify user can reschedule an existing appointment
+
+**Test Steps:**
+- Create an appointment via booking flow
+- Verify appointment exists on dashboard
+- Click "Reschedule"
+- Select a different future date/time
+- Verify modified appointment displays correctly on dashboard
+- Verify updated confirmation
+
+---
+
+#### 13. Appointment Cancellation
+**Objective:** Verify user can cancel an appointment
+
+**Test Steps:**
+- Create an appointment via booking flow
+- Verify appointment exists on dashboard
+- Click "Cancel"
+- Select a cancellation reason
+- Verify reason field is required
+- Verify cancellation confirmation page displays
+- Verify appointment no longer shows on dashboard
+- Verify cancellation email/notification received
+
+---
+
+#### 14. Accessibility Testing
+**Objective:** Verify application is accessible to all users
+
+**Test Areas:**
+- Screen reader compatibility and functionality
+- Keyboard navigation for entire booking flow
+- ARIA labels and semantic HTML
+- Color contrast ratios
+- Focus indicators
+
+---
+
+#### 15. Cross-Browser & Device Compatibility
+**Objective:** Verify booking flow works across different browsers and devices
+
+**Desktop Browsers (Latest Versions):**
+- Chrome
+- Firefox
+- Safari
+- Edge
+
+**Mobile Devices:**
+- iOS Safari
+- Android Chrome
+
+**Verification:**
+- All functionality works correctly
+- Responsive design displays properly
+
+---
+
+### Part 2: Top 3 Priority Test Cases
+
+**Instructions:** For the top 3 test cases from Part 1, please provide a description explaining why they are indicated as your most important.
