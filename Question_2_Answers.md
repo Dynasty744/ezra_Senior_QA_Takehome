@@ -2,77 +2,41 @@
 
 ## Question 2
 
-### Part 2: HTTP Requests
+### Part 1: Medical Questionnaire Integration Test
 
 ---
 
-#### 1. End-to-End Critical User Journey
+#### API request interception for PHI extraction :
 
-1. POST /api/auth/login
-2. GET /api/scan-types
-3. POST /api/bookings/plan
-4. GET /api/locations?state=CA
-5. GET /api/locations/{locationId}/availability?scanType={scanType}
-6. GET /api/locations/{locationId}/timeslots?date={date}
-7. POST /api/bookings/schedule
-8. POST /api/payments/create
-9. POST /api/payments/process
-10. GET /api/bookings/{bookingId}/confirmation
-11. GET /api/questionnaires/{appointmentId}
-12. POST /api/questionnaires/{questionnaireId}/submit
-13. GET /api/appointments
+##### Test setup
+    Victim Patient (questionnaire ID - 1234)
+    Attacker Patient (questionnaire ID - 4321)
 
-#### 2. Payment Process Validation
+1. Attack opens browser developer tools (network tab)
+2. Log into own account and starts the questionnaire
+3. Filter for "data" and Fetch/XHR
+4. Locate the *data* request that fetches questionnaire
+5. Right click on the call and copy as fetch
+6. Open browser console and paste into window
+7. Modify questionnaire ID from 4321 to 1234 (victim's ID)
+8. Send request via console
 
-##### credit card payment (success)
+##### Expected response
+    Status Code: 403
+    Status Text: Forbidden
+    Headers: Headers {}
+    Response Body: {error: "Unauthorized access", code: "AUTH_403"}
 
-1. POST /api/payments/create
-2. POST /api/payments/process -> (valid cc)
-3. GET /api/payments/{paymentId}/status
-4. GET /api/bookings/{bookingId}/confirmation
-5. GET /api/appointments/{appointmentId}
+##### Possible vulnerability
+    Status Code: 200
+    Status Text: OK
+    Headers: Headers {}
+    Response Body: (96) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
 
-##### failed credit card (declined)
+##### Conclusion
 
-1. POST /api/payments/create
-2. POST /api/payments/process -> (invalid cc)
-3. GET /api/payments/{paymentId}/status -> (verify invalid cc)
-4. GET /api/bookings/{bookingId}/status -> (verify incompleted)
-5. GET /api/appointments -> appointmentId should NOT exist
-
-##### incomplete payment (insufficient funds)
-
-1. POST /api/payments/create
-2. POST /api/payments/process -> (insufficient fund card)
-3. GET /api/payments/{paymentId}/status -> (verify insufficient funds)
-4. GET /api/bookings/{bookingId}/status -> (verify payment pending)
-
-#### 3. Questionnaire Deadline Enforcement
-
-##### completed on time
-
-1. create appointment 7 days out
-    1. POST /api/appointments
-    2. POST /api/bookings/create
-
-2. on day 2 (5 days left), complete and submit questionnaire
-    1. GET /api/questionnaires/{appointmentId}/questions
-    2. POST /api/questionnaires/{appointmentId}/submit
-    3. PUT /api/questionnaires/{appointmentId}/complete
-
-3. verify questionnaire completion
-    1. GET /api/questionnaires/{appointmentId}/status
-
-##### missed deadline
-
-1. create appointment 7 days out
-    1. POST /api/appointments
-    2. POST /api/bookings/create
-
-2. on day 3 (4 days left)
-    1. GET /api/questionnaires/{appointmentId}/status
-
-3. verify appointment has been cancelled
-    1. GET /api/appointments/{appointmentId}/status
-
----
+- Attackers could use this method to retrieve other patients' PHI. There are a few instances which may make this possible:
+    - If server side authorization is skipped for certain calls
+    - Authorization logic not implemented correctly
+    - Authentication vs authorization faults
+    - Mismatched design intension between FE and BE
