@@ -6,9 +6,9 @@
 
 ---
 
-#### API request interception for PHI extraction :
+#### API Request Interception For PHI Extraction :
 
-##### Test setup
+##### Test Setup
     Victim Patient (questionnaire ID - 1234)
     Attacker Patient (questionnaire ID - 4321)
 
@@ -21,13 +21,13 @@
 7. Modify questionnaire ID from 4321 to 1234 (victim's ID)
 8. Send request via console
 
-##### Expected response
+##### Expected Response
     Status Code: 403
     Status Text: Forbidden
     Headers: Headers {}
     Response Body: {error: "Unauthorized access", code: "AUTH_403"}
 
-##### Possible vulnerability
+##### Possible Vulnerability
     Status Code: 200
     Status Text: OK
     Headers: Headers {}
@@ -43,7 +43,7 @@
 
 ---
 
-### Part 2: HTTP requests for Medical Questionnaire Integration Test
+### Part 2: HTTP Requests For Medical Questionnaire Integration Test
 
 1. https://stage-api.ezra.com/individuals/member/connect/token
 2. https://stage-api.ezra.com/individuals/api/members
@@ -52,7 +52,7 @@
 
 ---
 
-### Part 3: Analysis on endpoints security and QA solutions
+### Part 3: Analysis On Endpoint Security and QA Solutions
 
 #### Situation:
 
@@ -64,7 +64,7 @@
 
 #### Solution:
 
-##### Automation tests for every endpoint
+##### Automation Tests For Every Endpoint
 
 - Unauthenticated access - token and user role check
 - Cross patient access - one patient should not access another
@@ -72,7 +72,7 @@
 - API response data leak - should only contain authorized data
 - Tests should be scheduled to run daily
 
-##### Extra layers of security
+##### Extra Layers Of Security
 
 - Write a CLI tool for developers to run security checks before committing code
 - Introduce security checks on new code push
