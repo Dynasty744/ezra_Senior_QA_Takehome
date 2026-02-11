@@ -13,8 +13,6 @@ export class ScheduleScanPage extends BasePage {
   readonly timeSlots: Locator;
   readonly timeSlot: Locator;
   readonly continueButton: Locator;
-  readonly locationPermissionDialog: Locator;
-  readonly noLocationsMessage: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -43,10 +41,6 @@ export class ScheduleScanPage extends BasePage {
     this.continueButton = page.locator(
       'button:has-text("Continue"), button[type="submit"], [data-test="submit"]'
     );
-    
-    // Messages
-    this.locationPermissionDialog = page.locator('[role="dialog"], .permission-dialog');
-    this.noLocationsMessage = page.locator('.no-locations, .empty-state');
   }
 
   /**
