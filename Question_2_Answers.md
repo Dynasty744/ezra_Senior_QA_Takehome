@@ -40,3 +40,12 @@
     - Authorization logic not implemented correctly
     - Authentication vs authorization faults
     - Mismatched design intension between FE and BE
+
+---
+
+### Part 2: HTTP requests for Medical Questionnaire Integration Test
+
+- https://stage-api.ezra.com/individuals/member/connect/token
+- https://stage-api.ezra.com/individuals/api/members
+- https://stage-api.ezra.com/diagnostics/api/medicaldata/forms/mq/submissions/745ff2fe-cfca-43a0-a4df-70346df1a720/detail (could extract various IDs)
+- https://stage-api.ezra.com/diagnostics/api/medicaldata/forms/mq/submissions/2697/data (could expose PHI)
