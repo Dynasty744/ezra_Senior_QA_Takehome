@@ -143,12 +143,4 @@ export class ConfirmationPage extends BasePage {
     await expect(this.appointmentDetails).toBeVisible();
     await expect(this.fillQuestionnaireButton).toBeVisible();
   }
-
-  /**
-   * Scroll an element into view
-   * @param locator - Playwright Locator to scroll
-   */
-  async scrollIntoView(locator: import('@playwright/test').Locator) {
-    await locator.scrollIntoViewIfNeeded().catch(() => {});
-  }
 }

@@ -80,12 +80,4 @@ export class SelectPlanPage extends BasePage {
     await this.selectScanPlan(scanType);
     await this.clickContinue();
   }
-
-  /**
-   * Scroll an element into view
-   * @param locator - Playwright Locator to scroll
-   */
-  async scrollIntoView(locator: import('@playwright/test').Locator) {
-    await locator.scrollIntoViewIfNeeded().catch(() => {});
-  }
 }

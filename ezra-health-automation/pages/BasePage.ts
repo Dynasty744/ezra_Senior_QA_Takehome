@@ -51,6 +51,10 @@ export class BasePage {
     expect(url).toContain('https://');
   }
 
+  async scrollIntoView(locator: import('@playwright/test').Locator) {
+    await locator.scrollIntoViewIfNeeded().catch(() => {});
+  }
+
   async verifySensitiveDataNotInStorage(sensitiveKeys: string[]) {
     const localStorage = await this.page.evaluate(() => {
       return JSON.stringify(window.localStorage);
