@@ -39,7 +39,7 @@ export class ConfirmationPage extends BasePage {
    * Navigate to confirmation page
    */
   async navigate() {
-    await this.goto('/sign-up/scan-confirm');
+    await this.goto('/book-scan/scan-confirm');
     await this.waitForPageLoad();
   }
 

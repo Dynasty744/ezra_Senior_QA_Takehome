@@ -19,27 +19,29 @@ export class ScheduleScanPage extends BasePage {
     
     // Location selection
     this.locationCards = page.locator(
-      '[data-testid="location-cards"], .location-cards,'
+      '.location-cards'
     );
-    this.locationCard = this.locationCards.first();
+    this.locationCard = page.locator(
+      '.location-cards .location-card'
+    ).first();
     
     // Calendar and time selection
     this.calendar = page.locator(
       '[data-testid="calendar"], .calendar, [role="grid"]'
     );
     this.dateButton = page.locator(
-      '[data-testid*="date"], .vuecal__cell vuecal__cell--day1, button[aria-label*="day"]'
+      '.vuecal__cell .vc-day-content[role="button"]'
     );
     this.timeSlots = page.locator(
       '[data-testid="time-slots"], .appointments__list, .available-times'
     );
     this.timeSlot = page.locator(
-      '[data-testid*="time-slot"], .appointments__individual-appointment, button[aria-label*="time"]'
-    );
+      '.appointments__individual-appointment:visible'
+    ).first();
     
     // Navigation
     this.continueButton = page.locator(
-      'button:has-text("Continue"), button[type="submit"], [data-test="submit"]'
+      '[data-test="submit"]'
     );
   }
 
@@ -47,7 +49,7 @@ export class ScheduleScanPage extends BasePage {
    * Navigate to schedule scan page
    */
   async navigate() {
-    await this.goto('/sign-up/schedule-scan');
+    await this.goto('/book-scan/schedule-scan');
     await this.waitForPageLoad();
   }
 
@@ -76,13 +78,17 @@ export class ScheduleScanPage extends BasePage {
     const availableDates: Locator[] = [];
     
     for (const dateBtn of dateButtons) {
-      const isDisabled = await dateBtn.getAttribute('disabled');
-      const hasDisabledClass = await dateBtn.getAttribute('class');
-      
-      if (!isDisabled && !hasDisabledClass?.includes('disabled')) {
-        availableDates.push(dateBtn);
-      }
+    // Find the parent cell to check for disabled state
+    const cell = dateBtn.locator('xpath=../..'); // Go up to vuecal__cell
+    const classAttribute = await cell.getAttribute('class');
+    
+    // Check if date is NOT disabled and NOT before min
+    if (!classAttribute?.includes('--disabled') && 
+        !classAttribute?.includes('--before-min') &&
+        !classAttribute?.includes('--out-of-scope')) {
+      availableDates.push(dateBtn);
     }
+  }
     
     return availableDates;
   }
@@ -91,19 +97,17 @@ export class ScheduleScanPage extends BasePage {
    * Select first available date from calendar
    */
   async selectFirstAvailableDate() {
-    await this.waitForVisible(this.calendar);
-    
-    const availableDates = await this.getAvailableDates();
-    
-    if (availableDates.length > 0) {
-      await availableDates[0].click();
-    } else {
-      // Fallback: click first non-disabled date button
-      await this.dateButton.first().click();
-    }
-    
-    await this.page.waitForTimeout(1000);
-  }
+  await this.waitForVisible(this.calendar);
+  
+  // Directly select the first cell without disabled classes
+  const firstAvailableDate = this.page.locator(
+    '.vuecal__cell:not(.vuecal__cell--disabled):not(.vuecal__cell--before-min):not(.vuecal__cell--out-of-scope) .vc-day-content[role="button"]'
+  ).first();
+  
+  await firstAvailableDate.waitFor({ state: 'visible', timeout: 5000 });
+  await firstAvailableDate.click();
+  await this.page.waitForTimeout(1000);
+}
 
   /**
    * Select first available time slot
@@ -120,13 +124,16 @@ export class ScheduleScanPage extends BasePage {
   async clickContinue() {
     await this.scrollIntoView(this.continueButton);
     await this.safeClick(this.continueButton);
-    await this.waitForURL('/sign-up/reserve-appointment/');
+    await this.waitForURL(/reserve-appointment/);
   }
 
   /**
    * Complete schedule selection
    */
   async completeScheduleSelection() {
+    await this.selectFirstLocation();
+    await this.selectFirstAvailableDate();
+    await this.selectFirstAvailableTimeSlot();
     await this.clickContinue();
   }
 }

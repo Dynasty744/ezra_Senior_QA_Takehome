@@ -32,7 +32,7 @@ export class PaymentPage extends BasePage {
     
     // Payment method tabs
     this.creditCardTab = page.locator(
-      'button:has-text("card"), data-value="card", [data-testid="payment-credit-card"]'
+      'button:has-text("card"), [data-value="card"], [data-testid="payment-credit-card"]'
     );
 
     // Credit card form fields (non-Stripe)
@@ -75,7 +75,7 @@ export class PaymentPage extends BasePage {
    * Navigate to payment page
    */
   async navigate() {
-    await this.goto('/sign-up/reserve-appointment');
+    await this.goto('/book-scan/reserve-appointment');
     await this.waitForPageLoad();
   }
 
@@ -88,55 +88,46 @@ export class PaymentPage extends BasePage {
   }
 
   /**
-   * Select credit card payment method
-   */
-  async selectCreditCard() {
-    if (await this.isElementVisible(this.creditCardTab)) {
-      await this.safeClick(this.creditCardTab);
-      await this.page.waitForTimeout(1000);
-    }
-  }
-
-  /**
-   * Fill Stripe credit card information in iframes
-   * @param cardNumber - Card number
-   * @param expiry - Expiry date (MM/YY)
-   * @param cvc - CVC code
+   * Fill Stripe credit card information in embedded Payment Element
    */
   async fillStripeCardDetails(
     cardNumber: string,
     expiry: string = '12/29',
     cvc: string = '123'
   ) {
-    // Wait for Stripe iframes to load
-    await this.page.waitForTimeout(2000);
+    // Wait for Stripe Payment Element to load
+    await this.page.waitForTimeout(3000);
     
     try {
-      // Fill card number in iframe
-      const cardNumberInput = this.stripeCardNumberFrame.locator('input[name="cardnumber"], input[placeholder*="card"]');
+      // Stripe Payment Element uses a single iframe with all fields
+      const stripeFrame = this.page.frameLocator('iframe[name*="privateStripe"]').first();
+      
+      // Fill card number
+      const cardNumberInput = stripeFrame.locator('input[name="number"]');
+      await cardNumberInput.waitFor({ state: 'visible', timeout: 10000 });
       await cardNumberInput.fill(cardNumber);
       
-      // Fill expiry in iframe
-      const expiryInput = this.stripeExpiryFrame.locator('input[name="exp-date"], input[placeholder*="MM"]');
-      await expiryInput.fill(expiry);
+      // Fill expiry date
+      const expiryInput = stripeFrame.locator('input[name="expiry"]');
+      await expiryInput.fill(expiry.replace('/', '')); // Stripe wants "1225" not "12/25"
       
-      // Fill CVC in iframe
-      const cvcInput = this.stripeCvcFrame.locator('input[name="cvc"], input[placeholder*="CVC"]');
+      // Fill CVC
+      const cvcInput = stripeFrame.locator('input[name="cvc"]');
       await cvcInput.fill(cvc);
       
-    } catch (error) {
-      console.log('Stripe iframe method failed, trying direct input fields');
+      // Fill ZIP code (visible in your snapshot)
+      const zipInput = stripeFrame.locator('input[placeholder="12345"]');
+      if (await this.isElementVisible(zipInput)) {
+        await zipInput.fill('12345');
+      }
       
-      // Fallback: Try direct input fields (if Stripe is embedded differently)
-      if (await this.isElementVisible(this.cardNumberInput)) {
-        await this.safeFill(this.cardNumberInput, cardNumber);
-      }
-      if (await this.isElementVisible(this.cardExpiryInput)) {
-        await this.safeFill(this.cardExpiryInput, expiry);
-      }
-      if (await this.isElementVisible(this.cardCvcInput)) {
-        await this.safeFill(this.cardCvcInput, cvc);
-      }
+      // Wait for validation to clear
+      await this.page.waitForTimeout(1000);
+      
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.log('Stripe Payment Element failed, error:', errorMessage);
+      throw error; // Don't silently fail - payment is critical
     }
   }
 
@@ -146,15 +137,14 @@ export class PaymentPage extends BasePage {
   async clickContinue() {
     await this.safeClick(this.continueButton);
     // Wait for navigation to confirmation page
-    await this.waitForURL('/sign-up/scan-confirm');
+    await this.waitForURL(/scan-confirm/);
   }
 
   /**
    * Complete credit card payment with valid test card
    * @param cardNumber - Stripe test card number (default: valid card)
    */
-  async completePayment(cardNumber: string = '4242424242424242') {
-    await this.selectCreditCard();
+  async completePayment(cardNumber = process.env.STRIPE_TEST_CARD || '4242424242424242') {
     await this.fillStripeCardDetails(cardNumber);
     await this.clickContinue();
   }
@@ -169,7 +159,6 @@ export class PaymentPage extends BasePage {
       'insufficient_funds': '4000000000009995'
     };
     
-    await this.selectCreditCard();
     await this.fillStripeCardDetails(failedCards[failureType]);
   }
 

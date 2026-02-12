@@ -3,12 +3,12 @@ import { BasePage } from './BasePage';
 
 export class DashboardPage extends BasePage {
   readonly bookScanButton: Locator;
-  readonly encounterCard: Locator;
+  readonly appointmentCard: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.bookScanButton = page.locator('[data-testid="book-scan-btn"], button:has-text("Book a scan")');
-    this.encounterCard = page.locator('[data-testid="encounter-card"], .encounter-list-item');
+    this.bookScanButton = page.locator('.section-header').getByTestId('book-scan-btn');
+    this.appointmentCard = page.locator('.card:has-text("MRI")');
   }
 
   async navigate() {
@@ -22,9 +22,9 @@ export class DashboardPage extends BasePage {
   }
 
   async verifyAppointmentExists(scanType?: string) {
-    await this.waitForVisible(this.encounterCard);
+    await this.waitForVisible(this.appointmentCard);
     if (scanType) {
-      const text = await this.encounterCard.first().textContent();
+      const text = await this.appointmentCard.first().textContent();
       expect(text?.toLowerCase()).toContain(scanType.toLowerCase());
     }
   }

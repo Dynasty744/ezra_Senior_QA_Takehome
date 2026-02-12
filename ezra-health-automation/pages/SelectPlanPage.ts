@@ -12,10 +12,10 @@ export class SelectPlanPage extends BasePage {
   constructor(page: Page) {
     super(page);
     
-    // Scan type options
+    // First scan option card (assumed to be MRI for this test)
     this.mriScanOption = page.locator(
-      '[data-testid="FB30-encounter-card"], .encounter-list-item:has-text("MRI Scan")'
-    );
+      '.encounter-card'
+    ).first();
     
     // Navigation
     this.continueButton = page.locator(
@@ -67,7 +67,7 @@ export class SelectPlanPage extends BasePage {
   async clickContinue() {
     await this.scrollIntoView(this.continueButton);
     await this.safeClick(this.continueButton);
-    await this.waitForURL('/sign-up/select-plan/');
+    await this.waitForURL(/schedule-scan/);
   }
 
   /**

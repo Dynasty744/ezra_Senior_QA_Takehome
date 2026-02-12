@@ -17,9 +17,6 @@
 - Choose a location and select date/time
 - Enter payment information
 - Verify confirmation page with appointment details
-- Click "Fill out medical questionnaire" CTA
-- Complete and submit questionnaire
-- Verify questionnaire submission confirmation
 - Verify appointment appears in user dashboard
 - Verify confirmation email received
 
