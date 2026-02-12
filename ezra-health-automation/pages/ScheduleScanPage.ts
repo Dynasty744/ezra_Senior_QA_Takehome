@@ -104,7 +104,7 @@ export class ScheduleScanPage extends BasePage {
     '.vuecal__cell:not(.vuecal__cell--disabled):not(.vuecal__cell--before-min):not(.vuecal__cell--out-of-scope) .vc-day-content[role="button"]'
   ).first();
   
-  await firstAvailableDate.waitFor({ state: 'visible', timeout: 5000 });
+  await firstAvailableDate.waitFor({ state: 'visible', timeout: 10000 });
   await firstAvailableDate.click();
   await this.page.waitForTimeout(1000);
 }
